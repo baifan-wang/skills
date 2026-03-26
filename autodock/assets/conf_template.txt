@@ -1,0 +1,27 @@
+# AutoDock Vina Configuration Template
+# Place this file as 'conf.txt' in your working directory
+# or let autovina.py create a default one
+
+# Binding pocket center coordinates (will be updated from center.pdb if present)
+center_x = 0.0
+center_y = 0.0
+center_z = 0.0
+
+# Search box dimensions (Angstroms)
+# Recommended: 16.5-25 for most pockets
+size_x = 16.5
+size_y = 16.5
+size_z = 16.5
+
+# Search exhaustiveness (1-32)
+# Higher = more thorough but slower
+# Recommended: 8 for standard, 16-32 for difficult targets
+exhaustiveness = 8
+
+# Maximum number of binding modes to output
+# Recommended: 10-20 for analysis
+num_modes = 10
+
+# Energy range for output modes (kcal/mol)
+# Modes within this range from best score are kept
+energy_range = 4
