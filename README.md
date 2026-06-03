@@ -45,7 +45,7 @@ git clone https://github.com/baifan-wang/skills.git
 cp -r autodock $env:USERPROFILE\.claude\skills\autodock
 
 # amber-md
-cp -r amber-skill\amber-md $env:USERPROFILE\.claude\skills\amber-md
+cp -r amber-md $env:USERPROFILE\.claude\skills\amber-md
 ```
 
 各技能的详细安装和配置说明请参见对应目录下的 README。
