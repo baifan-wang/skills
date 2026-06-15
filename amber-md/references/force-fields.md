@@ -22,7 +22,7 @@
 | OPC | `leaprc.water.opc` | 4-point | ★★☆ | 更准确的介电常数和扩散性质；计算量约增加 20-30% |
 | TIP4P-Ew | `leaprc.water.tip4pew` | 4-point | ★☆☆ | 旧版 4-site 水模型；OPC 在各方面表现更优 |
 
-**选择建议**：默认使用 TIP3P；当水的动力学性质（扩散、弛豫时间）对研究问题有重要影响时，使用 OPC。
+**选择建议**：默认使用 OPC；使用ff19SB力场是，水的动力学性质（扩散、弛豫时间）对研究问题有重要影响时，必须使用 OPC。
 
 ---
 
@@ -63,11 +63,11 @@ antechamber -i ligand.mol2 -fi mol2 -o ligand.prepin -fo prepi -c resp -nc 0
 
 ## 4. 离子参数
 
-Joung-Cheatham 单价离子参数，专为 TIP3P 水模型优化：
+Li & Merz 参数 (L&M)参数，专为 OPC 水模型优化：
 
 ```tcl
 # LEaP 中加载离子参数
-loadamberparams frcmod.ionsjc_tip3p
+loadamberparams frcmod.ionslm_126_opc
 ```
 
 支持的离子：Na+、K+、Cl-（也包含 Cs+、Rb+、I-、Br-）。此参数修正了早期离子参数在水溶液中形成非物理性离子对的问题。
@@ -80,7 +80,7 @@ loadamberparams frcmod.ionsjc_tip3p
 
 ```tcl
 source leaprc.protein.ff19SB
-source leaprc.water.tip3p
+source leaprc.water.opc
 ```
 
 ### 5.2 蛋白-配体复合物
@@ -91,7 +91,7 @@ source leaprc.water.tip3p
 source leaprc.gaff2
 loadamberprep ligand.prepin
 loadamberparams ligand.frcmod
-loadamberparams frcmod.ionsjc_tip3p
+loadamberparams frcmod.ionslm_126_opc
 ```
 
 ### 5.3 蛋白-蛋白复合物
@@ -99,7 +99,7 @@ loadamberparams frcmod.ionsjc_tip3p
 ```tcl
 source leaprc.protein.ff19SB
 source leaprc.water.tip3p
-loadamberparams frcmod.ionsjc_tip3p
+loadamberparams frcmod.ionslm_126_opc
 ```
 
 ---
@@ -116,7 +116,7 @@ loadamberparams frcmod.ionsjc_tip3p
 3. 水动力学重要？   → 是 → OPC 水模型
                     → 否 → TIP3P（默认）
 
-4. 体系带净电荷？   → 是 → addions2 + ionsjc_tip3p 中和
+4. 体系带净电荷？   → 是 → addions2 + ionslm_126_opc 中和
                     → 否 → 跳过
 
 5. 特殊组分？

@@ -84,8 +84,9 @@ tleap -f leap.in
 
 `leap.in` 典型内容（**注意顺序：先保存 dry 拓扑和独立组分拓扑，再溶剂化**）：
 - `source leaprc.protein.ff19SB`（或 ff14SB）
-- `source leaprc.water.tip3p`（或 OPC）
+- `source leaprc.water.opc`（或 TIP4P）
 - `source leaprc.gaff2`（如有小分子）
+- `loadamberparams frcmod.ionslm_126_opc`  （加载离子参数，OPC 兼容此离子参数文件）
 - `loadamberprep ligand.prepin` + `loadamberparams ligand.frcmod`（如有）
 - `protein/ligand = loadpdb <file>` 加载结构
 - `check protein/ligand` 检查参数完整性
