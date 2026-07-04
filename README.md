@@ -2,9 +2,34 @@
 
 计算化学与分子模拟相关的 Claude Code Skills 集合。
 
+## 项目结构
+
+| 目录 | 说明 |
+|------|------|
+| `autodock/` | 自动化分子对接技能 |
+| `amber-md/` | Amber 分子动力学模拟技能 |
+| `claude-science/` | Claude Science 扩展集合（MCP 服务器 + 科学技能） |
+
 ## 技能列表
 
-### 1. autodock — 自动化分子对接
+### 1. claude-science — Claude Science 科学计算扩展
+
+面向生命科学与计算化学的综合扩展集合，包含 MCP 数据服务和科学计算技能。
+
+**MCP 服务器：**
+- **bio-tools**：统一查询接口，覆盖 23 个生物信息学数据域约 247 个工具（PubMed、ChEMBL、ClinVar、GTEx、PDB 等）
+- **ketcher-chemistry**：交互式化学结构编辑器（基于 EPAM Ketcher）
+
+**科学技能（30+ 个）：**
+- 蛋白质结构预测与设计（AlphaFold2、Boltz-2、Chai-1、OpenFold3、ESMFold2、ProteinMPNN 等）
+- 基因组与单细胞分析（Evo2、Borzoi、scGPT、scVI-tools）
+- 分子对接（DiffDock-L 全盲对接）
+- 远程计算与 HPC（SSH/SLURM、Modal 无服务器 GPU）
+- 科研写作与可视化（出版级图表、文献综述、PDF 解析）
+
+详见 [claude-science/README.md](claude-science/README.md)
+
+### 2. autodock — 自动化分子对接
 
 基于 AutoDock Vina 的全自动分子对接工作流。从 PDB 文件到对接结果，全程自动化处理。
 
@@ -18,7 +43,7 @@
 
 **触发关键词：** 分子对接、docking、AutoDock Vina、虚拟筛选、蛋白-配体对接、PDB 处理
 
-### 2. amber-md —  Amber 分子动力学模拟
+### 3. amber-md — Amber 分子动力学模拟
 
 Amber 分子动力学模拟全流程助手。Claude 直接执行体系构建和轨迹分析，用户自行运行计算密集的模拟步骤。
 
@@ -41,6 +66,10 @@ git clone https://github.com/baifan-wang/skills.git
 将需要的技能目录复制到 Claude Code 的 skills 目录：
 
 ```powershell
+# claude-science
+cp -r claude-science/mcp-servers/* $env:USERPROFILE\.claude\mcp\
+cp -r claude-science/skills/<skill-name> $env:USERPROFILE\.claude\skills\<skill-name>
+
 # autodock
 cp -r autodock $env:USERPROFILE\.claude\skills\autodock
 
@@ -54,6 +83,7 @@ cp -r amber-md $env:USERPROFILE\.claude\skills\amber-md
 
 | 技能 | 外部软件 | Python 库 |
 |------|---------|-----------|
+| claude-science | 按技能各异（详见子目录） | 按技能各异（详见子目录） |
 | autodock | AutoDock Vina, OpenBabel, MGLTools | numpy, pandas, matplotlib, rdkit |
 | amber-md | AmberTools 26+, Amber 26+ | numpy, pandas, matplotlib |
 
