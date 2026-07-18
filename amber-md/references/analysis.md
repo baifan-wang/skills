@@ -10,7 +10,7 @@
 
 ```
 parm ../../prep/comp_dry.top
-trajin ../../md/product.nc
+trajin ../../md/product*.nc
 strip :WAT,:Na+,:Cl-
 center :1-20 mass
 image center familiar
@@ -30,7 +30,7 @@ trajout strip.nc netcdf
 mkdir physical && cd physical
 # 使用技能自带的 process_mdout.perl（无需单独安装）
 cp ../../scripts/process_mdout.perl .
-perl process_mdout.perl ../heat.out ../density.out ../product.out
+perl process_mdout.perl ../heat.out ../density.out ../product*.out
 ```
 
 输出 `summary.TEMP`、`summary.DENSITY`、`summary.EKTOT`、`summary.EPTOT`、`summary.ETOT`。
@@ -439,7 +439,7 @@ Input file for running PB and GB
 
 ```bash
 MMPBSA.py -O -i mmgbsa.in -o mmgbsa.dat -sp ../../prep/comp_oct.top \
-  -cp ../../prep/comp_dry.top -rp ../../prep/protein.top -lp ../../prep/ligand.top -y ../../md/product.nc
+  -cp ../../prep/comp_dry.top -rp ../../prep/protein.top -lp ../../prep/ligand.top -y ../../md/product*.nc
 ```
 
 结果解读：`DELTA TOTAL` 即为结合自由能 (kcal/mol)。负值表示有利结合。

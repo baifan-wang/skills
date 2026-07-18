@@ -1,4 +1,4 @@
-[README.md](https://github.com/user-attachments/files/26244905/README.md)
+﻿[README.md](https://github.com/user-attachments/files/26244905/README.md)
 [README.md](https://github.com/user-attachments/files/26244905/README.md)
 # AutoDock Skill
 
@@ -41,7 +41,7 @@ pip install -r requirements.txt
 ```
 
 3. **配置外部工具路径**
-编辑 `autovina.py` 中的路径配置：
+编辑 `scripts/autovina.py` 中的路径配置：
 ```python
 VINA_EXE_PATH = "C:\\apps\\vina.exe"  # 修改为实际的vina路径
 OPENBABEL_PATH = "C:\\OpenBabel-3.1.1\\obabel.exe"  # 修改为实际的openbabel路径
@@ -180,7 +180,7 @@ working_directory/
 ```
 检查MGLTools路径配置是否正确
 确保receptor.pdb包含有效的ATOM记录
-尝试重新处理PDB文件：python process_pdb.py input.pdb receptor.pdb
+尝试重新处理PDB文件：python scripts/process_pdb.py input.pdb receptor.pdb
 ```
 
 **Q: "Low docking scores"**

@@ -1,0 +1,230 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SLTCAP — MD 模拟离子数量计算器</title>
+<style>
+  body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+         max-width: 600px; margin: 40px auto; padding: 0 20px;
+         background: #f8f8f8; color: #333; }
+  h1 { font-size: 1.3em; border-bottom: 2px solid #4a6fa5; padding-bottom: 8px; }
+  .desc { font-size: 0.9em; color: #555; line-height: 1.5; }
+  table.form { width: 100%; border-collapse: collapse; margin: 15px 0; }
+  table.form th { text-align: left; padding: 6px 8px; font-weight: 500;
+                  background: #eef2f7; border: 1px solid #d0d7e2; width: 55%; }
+  table.form td { padding: 4px 8px; border: 1px solid #d0d7e2; }
+  input[type="number"] { width: 90px; text-align: right; padding: 4px; border: 1px solid #bbb; border-radius: 3px; }
+  input.small { width: 70px; }
+  button { padding: 8px 24px; margin: 5px; border: 1px solid #4a6fa5; border-radius: 4px;
+           background: #4a6fa5; color: #fff; cursor: pointer; font-size: 0.95em; }
+  button.reset { background: #fff; color: #4a6fa5; }
+  button:hover { opacity: 0.9; }
+  .result { margin-top: 20px; padding: 15px; background: #fff; border: 1px solid #d0d7e2;
+            border-radius: 4px; display: none; }
+  .result.show { display: block; }
+  .result h3 { margin: 0 0 10px 0; color: #4a6fa5; }
+  .result .ion { font-size: 1.5em; font-weight: bold; margin: 5px 0; }
+  .result .pot { color: #888; margin: 8px 0; }
+  .result .details { font-size: 0.85em; color: #999; margin-top: 12px; border-top: 1px solid #eee; padding-top: 8px; }
+  .cite { font-size: 0.78em; color: #aaa; margin-top: 25px; }
+  .error { color: #c00; font-size: 0.9em; margin: 8px 0; }
+  .debye { margin: 15px 0; font-size: 0.85em; }
+  .debye table { border-collapse: collapse; margin: 5px 0; }
+  .debye td, .debye th { border: 1px solid #ddd; padding: 2px 10px; text-align: center; }
+  fieldset { border: 1px solid #d0d7e2; border-radius: 4px; padding: 10px 15px; margin: 10px 0; }
+  legend { font-weight: 600; color: #4a6fa5; }
+</style>
+</head>
+<body>
+
+<h1>SLTCAP — Screening Layer Tally by Container Average Potential</h1>
+
+<p class="desc">
+  计算 MD 模拟所需盐离子数量。基于 Donnan 平衡计算在给定盒子体积、盐浓度和溶质净电荷下，
+  维持电中性和正确离子强度所需的阴阳离子数。
+</p>
+
+<div class="debye">
+  <strong>德拜屏蔽长度参考：</strong>
+  <table>
+    <tr><th>盐浓度 (mM)</th><td>10</td><td>50</td><td>100</td><td>150</td><td>300</td><td>500</td><td>1000</td></tr>
+    <tr><th>屏蔽长度 (nm)</th><td>3.0</td><td>1.4</td><td>0.96</td><td>0.78</td><td>0.55</td><td>0.43</td><td>0.30</td></tr>
+  </table>
+</div>
+
+<form id="sltcap-form">
+  <fieldset>
+    <legend>基本参数（必填）</legend>
+    <table class="form">
+      <tr>
+        <th>蛋白质质量 (kDa)：</th>
+        <td><input type="number" id="mass" value="0" step="0.1" min="0" title="设为 0 若已知溶剂体积"></td>
+      </tr>
+      <tr>
+        <th>盐浓度 (mM)：</th>
+        <td><input type="number" id="conc" value="150" step="0.1" min="0.1" title="目标盐浓度"></td>
+      </tr>
+      <tr>
+        <th>溶质净电荷 (质子电荷单位)：</th>
+        <td><input type="number" id="charge" value="0" step="1" title="正值为净正电荷，负值为净负电荷"></td>
+      </tr>
+    </table>
+  </fieldset>
+
+  <fieldset>
+    <legend>几何描述（选填一种）</legend>
+    <table class="form">
+      <tr>
+        <th>立方盒子边长 (nm)：</th>
+        <td><input type="number" id="box" step="0.01" min="0" title="简单立方盒子"></td>
+      </tr>
+      <tr>
+        <th>长方体盒子尺寸 (nm)：</th>
+        <td>
+          X: <input type="number" id="boxX" class="small" step="0.01" min="0">
+          Y: <input type="number" id="boxY" class="small" step="0.01" min="0">
+          Z: <input type="number" id="boxZ" class="small" step="0.01" min="0">
+        </td>
+      </tr>
+      <tr>
+        <th>水分子数量：</th>
+        <td><input type="number" id="waters" step="1" min="0" title="如果从 tleap 输出中已知水分子数"></td>
+      </tr>
+      <tr>
+        <th>
+          蛋白到盒子边缘距离 (nm) <em>和</em><br>
+          蛋白质最长轴 (nm)：
+        </th>
+        <td>
+          <input type="number" id="edge" class="small" step="0.1" min="0" title="缓冲层厚度">
+          <br>
+          <input type="number" id="axis" class="small" step="0.1" min="0" title="蛋白质沿最长轴的尺寸">
+        </td>
+      </tr>
+    </table>
+  </fieldset>
+
+  <div style="text-align:center;">
+    <button type="submit">计算</button>
+    <button type="reset" class="reset">重置</button>
+  </div>
+  <div class="error" id="error"></div>
+</form>
+
+<div class="result" id="result">
+  <h3>计算结果</h3>
+  <div class="ion">阴离子 (Cl⁻): <span id="out-anions"></span></div>
+  <div class="ion">阳离子 (Na⁺): <span id="out-cations"></span></div>
+  <div class="pot">盒子平均电势: <span id="out-potential"></span> mV</div>
+  <div class="details">
+    溶剂体积: <span id="out-vsolv"></span> nm³ &nbsp;|&nbsp;
+    水分子: <span id="out-waters"></span> &nbsp;|&nbsp;
+    计算方法: <span id="out-method"></span>
+  </div>
+</div>
+
+<p class="cite">
+  引用: Schmit, Kariyawasam, Needham &amp; Smith,
+  <em>J. Chem. Theory Comput.</em> <strong>14</strong>, 1823–1827 (2018)
+  &nbsp; <a href="https://pubs.acs.org/doi/10.1021/acs.jctc.7b01254" target="_blank">DOI</a>
+</p>
+
+<script>
+// Physical constants calibrated to match SLTCAP web tool
+const BOX_ION_FACTOR = 0.0006020;   // n_base = V_solv * C_mM * BOX_ION_FACTOR
+const WATER_MOLARITY = 55.556;       // mol/L
+const WATER_FACTOR = 1.0 / (WATER_MOLARITY * 1000);
+const WATER_DENSITY = BOX_ION_FACTOR / WATER_FACTOR;
+const KT_OVER_E = 25.68;             // mV at 298K
+const PROT_SPECIFIC_VOLUME = 1.1947; // nm^3/kDa
+
+function proteinVolume(mass_kDa) {
+    return mass_kDa * PROT_SPECIFIC_VOLUME;
+}
+
+function solveDonnan(nBase, zSolute) {
+    if (nBase <= 0) return { anions: 0, cations: 0, potential: 0 };
+    const x = zSolute / (2.0 * nBase);
+    const ephi = Math.asinh(x);
+    return {
+        anions: nBase * Math.exp(ephi),
+        cations: nBase * Math.exp(-ephi),
+        potential: ephi * KT_OVER_E
+    };
+}
+
+function fromBoxVolume(boxVol, mass, conc, charge) {
+    const vProt = proteinVolume(mass);
+    const vSolv = Math.max(boxVol - vProt, 0);
+    const nWater = vSolv * WATER_DENSITY;
+    const nBase = vSolv * conc * BOX_ION_FACTOR;
+    const donnan = solveDonnan(nBase, charge);
+    return { ...donnan, vSolv, nWater, method: "盒子体积法" };
+}
+
+function fromWaterCount(nWater, conc, charge) {
+    const nBase = nWater * conc * WATER_FACTOR;
+    const donnan = solveDonnan(nBase, charge);
+    const vSolv = nWater / WATER_DENSITY;
+    return { ...donnan, vSolv, nWater, method: "水分子计数法" };
+}
+
+function fromEdgeAxis(edge, axis, mass, conc, charge) {
+    const boxLen = 2.0 * edge + axis;
+    return fromBoxVolume(boxLen * boxLen * boxLen, mass, conc, charge);
+}
+
+document.getElementById("sltcap-form").addEventListener("submit", function(e) {
+    e.preventDefault();
+    const errDiv = document.getElementById("error");
+    const resDiv = document.getElementById("result");
+    errDiv.textContent = "";
+    resDiv.classList.remove("show");
+
+    const mass = parseFloat(document.getElementById("mass").value) || 0;
+    const conc = parseFloat(document.getElementById("conc").value);
+    const charge = parseFloat(document.getElementById("charge").value);
+
+    if (isNaN(conc) || conc <= 0) { errDiv.textContent = "请输入有效盐浓度 (>0)"; return; }
+    if (isNaN(charge)) { errDiv.textContent = "请输入有效电荷值"; return; }
+
+    const box = parseFloat(document.getElementById("box").value);
+    const boxX = parseFloat(document.getElementById("boxX").value);
+    const boxY = parseFloat(document.getElementById("boxY").value);
+    const boxZ = parseFloat(document.getElementById("boxZ").value);
+    const waters = parseFloat(document.getElementById("waters").value);
+    const edge = parseFloat(document.getElementById("edge").value);
+    const axis = parseFloat(document.getElementById("axis").value);
+
+    let result;
+    if (!isNaN(box) && box > 0) {
+        result = fromBoxVolume(box * box * box, mass, conc, charge);
+    } else if (!isNaN(boxX) && !isNaN(boxY) && !isNaN(boxZ) && boxX > 0 && boxY > 0 && boxZ > 0) {
+        result = fromBoxVolume(boxX * boxY * boxZ, mass, conc, charge);
+    } else if (!isNaN(waters) && waters > 0) {
+        result = fromWaterCount(waters, conc, charge);
+    } else if (!isNaN(edge) && !isNaN(axis) && edge > 0 && axis > 0) {
+        result = fromEdgeAxis(edge, axis, mass, conc, charge);
+    } else {
+        errDiv.textContent = "请选择一种几何描述方式并填入有效数值";
+        return;
+    }
+
+    document.getElementById("out-anions").textContent = result.anions.toFixed(2);
+    document.getElementById("out-cations").textContent = result.cations.toFixed(2);
+    document.getElementById("out-potential").textContent = result.potential.toFixed(2);
+    document.getElementById("out-vsolv").textContent = result.vSolv.toFixed(1);
+    document.getElementById("out-waters").textContent = Math.round(result.nWater).toLocaleString();
+    document.getElementById("out-method").textContent = result.method;
+    resDiv.classList.add("show");
+});
+
+document.getElementById("sltcap-form").addEventListener("reset", function() {
+    document.getElementById("result").classList.remove("show");
+    document.getElementById("error").textContent = "";
+});
+</script>
+
+</body>
+</html>

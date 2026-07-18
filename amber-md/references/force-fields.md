@@ -18,11 +18,11 @@
 
 | 水模型 | LEaP 载入 | 类型 | 推荐度 | 说明 |
 |--------|----------|------|--------|------|
-| TIP3P | `leaprc.water.tip3p` | 3-point | ★★★ 默认 | 计算速度最快；与蛋白力场联用验证最充分；扩散系数约为实验值的 2-3 倍 |
-| OPC | `leaprc.water.opc` | 4-point | ★★☆ | 更准确的介电常数和扩散性质；计算量约增加 20-30% |
+| TIP3P | `leaprc.water.tip3p` | 3-point | ★★★  | 计算速度最快；与蛋白力场联用验证最充分；扩散系数约为实验值的 2-3 倍 |
+| OPC | `leaprc.water.opc` | 4-point | ★★☆ 默认 | 更准确的介电常数和扩散性质；计算量约增加 20-30% |
 | TIP4P-Ew | `leaprc.water.tip4pew` | 4-point | ★☆☆ | 旧版 4-site 水模型；OPC 在各方面表现更优 |
 
-**选择建议**：默认使用 OPC；使用ff19SB力场是，水的动力学性质（扩散、弛豫时间）对研究问题有重要影响时，必须使用 OPC。
+**选择建议**：默认使用 OPC；使用ff19SB力场时，水的动力学性质（扩散、弛豫时间）对研究问题有重要影响时，必须使用 OPC。
 
 ---
 
@@ -87,7 +87,7 @@ source leaprc.water.opc
 
 ```tcl
 source leaprc.protein.ff19SB
-source leaprc.water.tip3p
+source leaprc.water.opc
 source leaprc.gaff2
 loadamberprep ligand.prepin
 loadamberparams ligand.frcmod
@@ -98,7 +98,7 @@ loadamberparams frcmod.ionslm_126_opc
 
 ```tcl
 source leaprc.protein.ff19SB
-source leaprc.water.tip3p
+source leaprc.water.opc
 loadamberparams frcmod.ionslm_126_opc
 ```
 
@@ -113,8 +113,8 @@ loadamberparams frcmod.ionslm_126_opc
 2. 含小分子配体？   → 是 → 加载 leaprc.gaff2 + antechamber 生成 prepin/frcmod
                     → 否 → 跳过
 
-3. 水动力学重要？   → 是 → OPC 水模型
-                    → 否 → TIP3P（默认）
+3. 水动力学重要？   → 是 → OPC 水模型（默认）
+                    → 否 → TIP3P
 
 4. 体系带净电荷？   → 是 → addions2 + ionslm_126_opc 中和
                     → 否 → 跳过

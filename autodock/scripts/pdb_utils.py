@@ -11,6 +11,11 @@ PDB处理共享工具模块
 - 文件验证
 """
 
+import sys
+if sys.platform == "win32":
+    import io
+    sys.stdout = io.TextIOWrapper(sys.stdout.buffer, encoding="utf-8", errors="replace")
+
 import re
 import logging
 import os

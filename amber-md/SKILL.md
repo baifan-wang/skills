@@ -1,15 +1,9 @@
 ---
 name: amber-md
 description: >
-  Amber 分子动力学模拟全流程助手。Claude 直接执行体系构建（antechamber/
-  parmchk2/tleap）和轨迹分析（cpptraj + Python 绘图），用户自行运行计算
-  密集的模拟步骤（pmemd.cuda/pmemd.MPI/sander）。支持蛋白-配体、纯蛋白、
-  蛋白-蛋白复合物体系。自动生成 Amber 输入文件（min.in / heat.in /
-  density.in / product.in）和运行脚本（bash / Slurm / PBS）。分析能力
-  包括 RMSD、RMSF、回旋半径、SASA、DSSP 二级结构、氢键分析、距离矩阵、
-  聚类分析、主成分分析 (PCA)、自由能景观图、MM-PBSA/GBSA 结合自由能计算。
-  用户提及 Amber、MD 模拟、分子动力学、蛋白模拟、配体结合、antechamber、
-  tleap/LEaP、pmemd、sander、cpptraj、MMPBSA、RMSD 分析、轨迹分析时触发。
+  Amber 分子动力学模拟全流程助手。Claude 直接执行体系构建（antechamber/  parmchk2/tleap）和轨迹分析（cpptraj + Python 绘图），用户自行运行计算
+  密集的模拟步骤（pmemd.cuda/pmemd.MPI/sander）。支持蛋白-配体、纯蛋白、  蛋白-蛋白复合物体系。自动生成 Amber 输入文件（min.in / heat.in /  density.in / product.in）和运行脚本（bash / Slurm / PBS）。分析能力包括 RMSD、RMSF、回旋半径、SASA、DSSP 二级结构、氢键分析、距离矩阵、  聚类分析、主成分分析 (PCA)、自由能景观图、MM-PBSA/GBSA 结合自由能计算。
+  用户提及 Amber、MD 模拟、分子动力学、蛋白模拟、配体结合、antechamber、  tleap/LEaP、pmemd、sander、cpptraj、MMPBSA、RMSD分析、轨迹分析时触发。
 ---
 
 # Amber 分子动力学模拟技能
@@ -43,8 +37,10 @@ description: >
 5. **模拟时长**：默认 1 ns（500,000 步，dt=0.002 ps）。教程级 1-10 ns 即可，发表级通常需 100 ns 以上。
 6. **分析需求**：需要哪些分析？（RMSD / RMSF / Rg / SASA / 氢键 / 聚类 / PCA / 自由能景观 / MM-PBSA）
    - **注意：MM-PBSA/GBSA 仅适用于蛋白-配体或蛋白-蛋白复合物体系，纯蛋白体系不适用。**
+7. **盐浓度**：目标盐浓度（mM）？默认 150 mM（生理盐浓度）。若溶剂化后运行 `addions2 comp Na+ 0`（仅中和不添加额外盐），则跳过 SLTCAP 计算。
+8. **离子类型**：默认 Na⁺/Cl⁻。如有特殊需求可指定其他离子（如 K⁺/Cl⁻、Mg²⁺/Cl⁻）。
 
-**新手默认设置**：如果不确定，默认使用 ff19SB 力场 + TIP3P 水模型 + Langevin 控温 (ntt=3, gamma_ln=2.0)。1 ns 模拟适合教程验证流程，发表级研究建议至少 100 ns。
+**新手默认设置**：如果不确定，默认使用 ff19SB 力场 + OPC 水模型 + Langevin 控温 (ntt=3, gamma_ln=2.0) + 150 mM NaCl。1 ns 模拟适合教程验证流程，发表级研究建议至少 100 ns。
 
 ---
 
@@ -72,15 +68,84 @@ parmchk2 -i ligand.prepin -f prepi -o ligand.frcmod
 1. 确认 `ligand.prepin` 和 `ligand.frcmod` 已生成
 2. 打开 `ligand.prepin`，确认残基名称与 `ligand.pdb` 中一致。如不一致，用 Edit 工具修正 prepin 中的残基名
 
-### 1.3 运行 LEaP 构建体系
+### 1.3 计算离子数量 (SLTCAP)
+
+**Claude 直接执行 `scripts/sltcap.py`**（秒级完成）。
+
+在编写 `leap.in` 之前，运行 SLTCAP 计算需要添加的阴/阳离子精确数量。该工具基于 Donnan 平衡计算在给定盒子体积和盐浓度下所需的总离子数（包含中和离子 + 背景盐离子）。
+
+**所需输入**：
+- 蛋白质质量 (kDa) — 从阶段 0 获取，未知则设为 0
+- 盐浓度 (mM) — 从阶段 0 获取，默认 150
+- 溶质净电荷 — 蛋白电荷 + 配体电荷（如有）
+- 几何描述 — 从阶段 0 获取缓冲距离和蛋白尺寸
+
+**执行方式**：
+
+```bash
+# 方式 1：已知盒子边长（溶剂化后从 tleap 输出获取）
+python scripts/sltcap.py --mass 50 --conc 150 --charge -8 --box 10
+
+# 方式 2：已知缓冲距离 + 蛋白最长轴
+python scripts/sltcap.py --mass 50 --conc 150 --charge -8 --edge 10 --axis 5
+
+# 方式 3：已知水分子数（tleap 溶剂化后从输出获取）
+python scripts/sltcap.py --mass 50 --conc 150 --charge -8 --waters 12000
+
+# JSON 输出（便于脚本解析）
+python scripts/sltcap.py --mass 50 --conc 150 --charge -8 --box 10 --json
+```
+
+**执行顺序说明**：SLTCAP 计算有两种时机选择：
+
+1. **推荐流程（分两次执行 tleap）**：
+   - 第一次 tleap：执行到 `solvateoct` 后 `quit`，从输出获取盒子尺寸和水分子数
+   - 运行 SLTCAP 获取精确离子数
+   - 第二次 tleap：完整执行包含 `addIonsRand comp Na+ {N_cations} Cl- {N_anions} 5.0`（填入 SLTCAP 结果）
+   
+2. **简化流程（一次执行 tleap）**：
+   - 在溶剂化前，用盒子边长或缓冲距离估算离子数
+   - 将估算值写入 `leap.in`
+   - 一次执行完整 tleap
+   - 适合对离子数精度要求不高的场景
+
+**输出解读**：
+- `n_anions` / `n_cations`：需要添加的阴/阳离子总数
+- `potential_mv`：盒子平均电势（接近 0 表示离子浓度合理，|Φ| > 10 mV 需考虑增大盒子或调整盐浓度）
+- 离子数取整后写入 `leap.in` 的 `addions2` 命令
+
+**为什么用 SLTCAP 而非 `addions2 comp Na+ 0`？** `addions2 ... 0` 仅中和体系电荷，不添加背景盐离子。SLTCAP 同时计算中和离子和维持目标盐浓度所需的额外盐离子对，确保溶液环境模拟真实实验条件。参考：Schmit et al., JCTC 14, 1823-1827 (2018)。
+
+### 1.4 运行 LEaP 构建体系
 
 **Claude 直接编写 `leap.in` 并执行 `tleap -f leap.in`**（通常 1-2 秒完成）。
 
-参考 `references/force-fields.md` 选择力场组合。生成 `leap.in` 并使用 Bash 工具执行：
+参考 `references/force-fields.md` 选择力场组合。
 
-```bash
-tleap -f leap.in
-```
+**推荐流程（分两次执行）**：
+
+第一次 tleap — 溶剂化，获取盒子参数：
+- 编写 `leap_solvate.in`：包含 force field、load 结构、combine、solvateoct，**不添加离子**，最后 `quit`
+- 执行 `tleap -f leap_solvate.in`，从输出中提取：
+  - 盒子体积：`Volume of box:` 行
+  - 水分子数：`Added XXX waters` 行
+- 运行 SLTCAP 计算精确离子数：
+  ```bash
+  python scripts/sltcap.py --mass {M} --conc {C} --charge {Z} --box {边长}
+  ```
+  或直接从水分子数计算：
+  ```bash
+  python scripts/sltcap.py --mass {M} --conc {C} --charge {Z} --waters {N}
+  ```
+
+第二次 tleap — 完整构建，添加离子：
+- 编写 `leap.in`：完整流程，`addions2` 使用 SLTCAP 计算结果（取整）
+- 执行 `tleap -f leap.in`
+
+**简化流程（一次执行，精度略低）**：
+- 用阶段 0 获取的缓冲距离和蛋白尺寸估算盒子大小
+- 预先运行 SLTCAP 估算离子数
+- 将估算值写入 `leap.in`，一次执行
 
 `leap.in` 典型内容（**注意顺序：先保存 dry 拓扑和独立组分拓扑，再溶剂化**）：
 - `source leaprc.protein.ff19SB`（或 ff14SB）
@@ -94,8 +159,8 @@ tleap -f leap.in
 - `saveamberparm ligand ligand.top ligand.crd`（**MM-PBSA 需要**）
 - `comp = combine { protein ligand }` 构建复合物
 - `saveamberparm comp comp_dry.top comp_dry.crd` **← 必须在溶剂化前保存真空拓扑**
-- `solvateoct comp TIP3PBOX 10.0` 添加水盒子（缓冲≥8 Å）
-- `addions2 comp Na+ 0` 或 `addions2 comp Cl- 0` 中和电荷
+- `solvateoct comp OPCPBOX 10.0` 添加水盒子（缓冲≥8 Å）
+- `addIonsRand comp Na+ {N_cations} Cl- {N_anions} 5.0`  ← **使用 SLTCAP 计算结果（取整），替代 `Na+ 0`，离子间距5 埃**
 - `saveamberparm comp comp_oct.top comp_oct.crd` 保存溶剂化体系（模拟用）
 - `savepdb comp comp_oct.pdb` 保存可视结构
 - `quit`
@@ -104,10 +169,12 @@ tleap -f leap.in
 
 **执行后检查 tleap 输出**：搜索 `ERROR` 关键字。如有 ERROR，根据 `references/troubleshooting.md` 修正后重新运行。Warning 可接受。
 
-### 1.4 构建完成检查清单
+### 1.5 构建完成检查清单
 
 - [ ] `check` 输出无 ERROR（Warning 可接受）
 - [ ] 体系净电荷为 0（`addions2` 已中和）
+- [ ] 离子数量经 SLTCAP 计算，盐浓度符合目标
+- [ ] 盒子平均电势 |Φ| < 10 mV（如偏高，考虑增大盒子或调整浓度）
 - [ ] 水盒子缓冲距离 ≥ 8 Å
 - [ ] 残基名称一致（prepin vs PDB）
 - [ ] 输出文件存在：`comp_oct.top`, `comp_oct.crd`, `comp_oct.pdb`, `comp_dry.top`, `comp_dry.crd`

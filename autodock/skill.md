@@ -1,6 +1,6 @@
----
+﻿---
 name: autodock
-description: Automated molecular docking workflow with AutoDock Vina. Use when users want to dock ligands to protein receptors, run virtual screening, prepare PDB files for docking, extract residues, or perform structure-based drug design. Supports multiple ligand formats (SMILES, SDF, MOL2, PDB, CDX), automatic receptor preparation, parallel docking execution, and result visualization. Trigger for any docking-related task, PDB file preparation, or when working with protein-ligand complexes.
+description: Automated molecular docking workflow with AutoDock Vina. Use when users explicitly want to dock ligands with AutoDock Vina, run Vina-based virtual screening, prepare PDB files for Vina docking, extract residues for docking center definition, or perform Vina/ADT-based structure-based drug design. Supports multiple ligand formats (SMILES, SDF, MOL2, PDB, CDX), automatic receptor preparation, parallel docking execution, and result visualization. Trigger when the user mentions AutoDock Vina, autodock, vina docking, or explicitly requests the docking workflow described here.
 license: MIT license
 metadata:
     skill-author: Claude Code User
@@ -81,7 +81,7 @@ working_directory/
 
 **Step 2: Run AutoVina**
 ```bash
-python autovina.py
+python scripts/autovina.py
 ```
 
 The script will:
@@ -110,22 +110,22 @@ working_directory/
 
 **Extract by residue name and number:**
 ```bash
-python extract_residues.py input.pdb "A ASN96 ALA35 B GLU97" -o center.pdb
+python scripts/extract_residues.py input.pdb "A ASN96 ALA35 B GLU97" -o center.pdb
 ```
 
 **Extract by single-letter amino acid codes:**
 ```bash
-python extract_residues.py input.pdb "A N96 A35 B E97" -o center.pdb
+python scripts/extract_residues.py input.pdb "A N96 A35 B E97" -o center.pdb
 ```
 
 **Extract by residue numbers only:**
 ```bash
-python extract_residues.py input.pdb "A 96 35 B 97" -o center.pdb
+python scripts/extract_residues.py input.pdb "A 96 35 B 97" -o center.pdb
 ```
 
 **Extract a small molecule/ligand:**
 ```bash
-python extract_residues.py input.pdb "A ACJ" -o center.pdb
+python scripts/extract_residues.py input.pdb "A ACJ" -o center.pdb
 ```
 
 **Input Format:**
@@ -142,7 +142,7 @@ python extract_residues.py input.pdb "A ACJ" -o center.pdb
 **Use Case:** Process PDB file before docking (add hydrogens, remove contaminants)
 
 ```bash
-python process_pdb.py input.pdb -o receptor.pdb --add-hydrogens --tool openbabel
+python scripts/process_pdb.py input.pdb -o receptor.pdb --add-hydrogens --tool openbabel
 ```
 
 **Common Options:**
@@ -157,7 +157,7 @@ python process_pdb.py input.pdb -o receptor.pdb --add-hydrogens --tool openbabel
 
 **Keep cofactors:**
 ```bash
-python process_pdb.py input.pdb -o receptor.pdb --add-hydrogens --keep-fad
+python scripts/process_pdb.py input.pdb -o receptor.pdb --add-hydrogens --keep-fad
 ```
 
 ### Workflow 4: Configure Docking Parameters
@@ -238,7 +238,7 @@ This loads receptor and top poses with color-coded ligands.
 1. Place all ligand files in `ligands/` directory
 2. Prepare `receptor.pdb`
 3. Create `center.pdb` or set coordinates in `conf.txt`
-4. Run `python autovina.py`
+4. Run `python scripts/autovina.py`
 
 ### Custom Grid Box Size
 
@@ -305,10 +305,19 @@ The pipeline automatically fixes common Windows Vina output problems:
 
 ```
 autodock/
-├── autovina.py           # Main docking automation script
-├── extract_residues.py   # Extract residues/ligands from PDB
-├── process_pdb.py        # PDB file preprocessing
-└── pdb_utils.py          # Shared utility functions
+├── scripts/
+│   ├── autovina.py           # Main docking automation script
+│   ├── extract_residues.py   # Extract residues/ligands from PDB
+│   ├── process_pdb.py        # PDB file preprocessing
+│   └── pdb_utils.py          # Shared utility functions
+├── assets/
+│   ├── conf_template.txt     # Default docking configuration template
+│   └── smiles_template.smi   # SMILES input template
+├── references/
+│   ├── pdb_format_reference.md
+│   └── troubleshooting.md
+├── skill.md
+└── README.md
 ```
 
 ## Integration Example
@@ -317,20 +326,20 @@ Complete workflow example:
 
 ```bash
 # 1. Extract binding site reference
-python extract_residues.py 3NKS.pdb "A ACJ" -o center.pdb
+python scripts/extract_residues.py 3NKS.pdb "A ACJ" -o center.pdb
 
 # 2. Extract key active site residues (optional, for visualization)
-python extract_residues.py 3NKS.pdb "A LEU56 HIS106" -o active_site.pdb
+python scripts/extract_residues.py 3NKS.pdb "A LEU56 HIS106" -o active_site.pdb
 
 # 3. Prepare receptor (add hydrogens, keep FAD cofactor)
-python process_pdb.py 3NKS.pdb -o receptor.pdb --add-hydrogens --keep-fad
+python scripts/process_pdb.py 3NKS.pdb -o receptor.pdb --add-hydrogens --keep-fad
 
 # 4. Place ligands in ligands/ directory
 mkdir -p ligands
 # Copy or create ligand files
 
 # 5. Run docking
-python autovina.py
+python scripts/autovina.py
 
 # 6. View results
 # - docking_summary.txt for energy ranking

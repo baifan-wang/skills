@@ -12,7 +12,7 @@
 ```
 Hold solute and minimize water only
  &cntrl
-  imin = 1, ncyc = 500, maxcyc = 1000, drms = 0.001,
+  imin = 1, ncyc = 2000, maxcyc = 5000, drms = 0.001,
   ntb = 1, ntr = 1, ntpr = 100, ntwr = 500, ntwx = 500,
   restraint_wt = 500, restraintmask='!:WAT,Na+,Cl-'
  /
@@ -39,7 +39,7 @@ Hold solute and minimize water only
 ```
 Minimize water and hydrogen
  &cntrl
-  imin = 1, ncyc = 500, maxcyc = 1000, drms = 0.001,
+  imin = 1, ncyc = 2000, maxcyc = 5000, drms = 0.001,
   ntb = 1, ntr = 1, ntpr = 100, ntwr = 500, ntwx = 500,
   restraint_wt = 500, restraintmask='(!:WAT,Na+,Cl-) & (!@H=)'
  /
@@ -52,7 +52,7 @@ Minimize water and hydrogen
 ```
 Minimize all
  &cntrl
-  imin = 1, ncyc = 500, maxcyc = 1000, drms = 0.001,
+  imin = 1, ncyc = 2000, maxcyc = 5000, drms = 0.001,
   ntb = 1, ntr = 0, ntpr = 100, ntwr = 500, ntwx = 500,
  /
 ```
@@ -160,7 +160,9 @@ NPT equilibration and production
 
 ## 5. LEaP 自动化模板
 
-### leap.in
+### leap.in（推荐：SLTCAP 两步法）
+
+**第一步 — `leap_solvate.in`**（溶剂化，不添加离子，仅获取盒子参数）：
 
 ```
 source leaprc.protein.ff19SB
@@ -177,8 +179,35 @@ saveamberparm ligand ligand.top ligand.crd
 comp = combine { protein ligand }
 savepdb comp comp_dry.pdb
 saveamberparm comp comp_dry.top comp_dry.crd
-solvateoct comp TIP3PBOX 10.0
-addions2 comp Cl- 0
+solvateoct comp TIP3PBOX 12.0
+quit
+```
+
+运行 `tleap -f leap_solvate.in`，从输出提取盒子尺寸或水分子数，运行 SLTCAP：
+
+```bash
+python scripts/sltcap.py --mass 50 --conc 150 --charge -8 --waters 12000
+```
+
+**第二步 — `leap.in`**（完整构建，使用 SLTCAP 离子数）：
+
+```
+source leaprc.protein.ff19SB
+source leaprc.water.tip3p
+source leaprc.gaff2
+loadamberprep ligand.prepin
+loadamberparams ligand.frcmod
+protein = loadpdb 1L2Y-1.pdb
+check protein
+saveamberparm protein protein.top protein.crd
+ligand = loadpdb ligand.pdb
+check ligand
+saveamberparm ligand ligand.top ligand.crd
+comp = combine { protein ligand }
+savepdb comp comp_dry.pdb
+saveamberparm comp comp_dry.top comp_dry.crd
+solvateoct comp TIP3PBOX 12.0
+addions2 comp Na+ 89 Cl- 81
 savepdb comp comp_oct.pdb
 saveamberparm comp comp_oct.top comp_oct.crd
 quit
@@ -204,11 +233,13 @@ quit
 | `comp = combine { protein ligand }` | 合并蛋白和配体为复合物 |
 | `savepdb comp comp_dry.pdb` | 保存真空复合物 PDB（用于 PyMOL 查看） |
 | `saveamberparm comp comp_dry.top comp_dry.crd` | 保存真空复合物拓扑和坐标（后续分析用） |
-| `solvateoct comp TIP3PBOX 10.0` | 添加 TIP3P 水盒子，八面体形状，溶剂层厚度 10 Å |
-| `addions2 comp Cl- 0` | 添加 Cl⁻ 离子中和体系电荷（0 表示自动中和） |
+| `solvateoct comp TIP3PBOX 12.0` | 添加 TIP3P 水盒子，八面体形状，溶剂层厚度 12 Å |
+| `addions2 comp Na+ 89 Cl- 81` | 添加 Na⁺/Cl⁻ 离子（**SLTCAP 计算结果取整**，同时实现中和与背景盐浓度） |
 | `savepdb comp comp_oct.pdb` | 保存溶剂化体系 PDB |
 | `saveamberparm comp comp_oct.top comp_oct.crd` | 保存溶剂化体系拓扑和坐标（**模拟用**） |
 | `quit` | 退出 LEaP |
+
+> **为什么不用 `addions2 comp Cl- 0`？** 0 表示仅中和电荷，不添加背景盐。SLTCAP 计算出的离子数同时包含中和离子和维持目标盐浓度所需的额外盐离子对，更接近真实实验条件。
 
 ---
 

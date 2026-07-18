@@ -1,3 +1,8 @@
+import sys
+if sys.platform == "win32":
+    import io
+    sys.stdout = io.TextIOWrapper(sys.stdout.buffer, encoding="utf-8", errors="replace")
+
 import os
 import subprocess
 import multiprocessing
@@ -23,9 +28,9 @@ from pdb_utils import (
 
 # ============================ 用户配置 ============================
 # 请根据您的实际安装路径修改以下变量
-VINA_EXE_PATH = "C:\\apps\\vina.exe"  # 请修改为实际的vina路径
-OPENBABEL_PATH = "C:\\OpenBabel-3.1.1\\obabel.exe"  # 请修改为实际的openbabel路径
-MGL_PATH = "C:\\Program Files (x86)\\MGLTools-1.5.7\\"
+VINA_EXE_PATH = os.environ.get("VINA_EXE_PATH", "C:\\apps\\vina.exe")
+OPENBABEL_PATH = os.environ.get("OPENBABEL_PATH", "C:\\OpenBabel-3.1.1\\obabel.exe")
+MGL_PATH = os.environ.get("MGL_PATH", "C:\\Program Files (x86)\\MGLTools-1.5.7\\")
 PREPARE_LIGAND_SCRIPT = MGL_PATH + "Lib\\site-packages\\AutoDockTools\\Utilities24\\prepare_ligand4.py"
 PREPARE_RECEPTOR_SCRIPT = MGL_PATH + "Lib\\site-packages\\AutoDockTools\\Utilities24\\prepare_receptor4.py"
 ADT4_PYTHON = MGL_PATH + "python.exe"
@@ -106,36 +111,32 @@ class MolFormatConverter:
         try:
             with open(mol2_file, 'r') as f:
                 lines = f.readlines()
-            
-            # 这里是一个简单的重命名示例，实际需要根据mol2格式进行调整
-            # 例如：将原子名从数字改为元素符号
-            i = 0
-            n = 1
-            f = open(mol2_file,'w')
-            rename = False
-            for line in lines:
-                if line.startswith('@<TRIPOS>ATOM'):
-                    rename = True
-                    f.write(line)
-                elif line.startswith('@<TRIPOS>UNITY_ATOM_ATTR') or line.startswith('@<TRIPOS>BOND'):
-                    rename = False
-                    f.write(line)
-                elif rename == False:
-                    f.write(line)
-                elif rename == True:
-                    i+=1
-                    if line.split()[5] == 'Cl':
-                        s=line[:9]+'l'+str(n)+line[13:]
-                        n+=1
-                    elif line.split()[5] == 'Br':
-                        s=line[:9]+'r'+str(n)+line[13:]
-                        n+=1
-                    else:
-                        s=line[:9]+str(i)+line[10:]
-                        i+=1
-                    f.write(s)
-            f.close()
 
+            with open(mol2_file, 'w') as f:
+                i = 0
+                n = 1
+                rename = False
+                for line in lines:
+                    if line.startswith('@<TRIPOS>ATOM'):
+                        rename = True
+                        f.write(line)
+                    elif line.startswith('@<TRIPOS>UNITY_ATOM_ATTR') or line.startswith('@<TRIPOS>BOND'):
+                        rename = False
+                        f.write(line)
+                    elif rename == False:
+                        f.write(line)
+                    elif rename == True:
+                        i+=1
+                        if line.split()[5] == 'Cl':
+                            s=line[:9]+'l'+str(n)+line[13:]
+                            n+=1
+                        elif line.split()[5] == 'Br':
+                            s=line[:9]+'r'+str(n)+line[13:]
+                            n+=1
+                        else:
+                            s=line[:9]+str(i)+line[10:]
+                            i+=1
+                        f.write(s)
                 
         except Exception as e:
             print(f"重命名mol2文件时出错: {e}")
@@ -441,32 +442,22 @@ class MolFormatConverter:
         """
         try:
             pdbqt_path = self.ligands_dir / f"{ligand_file.stem}.pdbqt"
-            
-            # 获取绝对路径
-            ligand_abs = ligand_file.absolute()
-            pdbqt_abs = pdbqt_path.absolute()
-            
-            # 获取文件所在目录作为工作目录
-            working_dir = ligand_abs.parent
-            
             cmd = [
                 ADT4_PYTHON,
                 PREPARE_LIGAND_SCRIPT,
-                '-l', ligand_abs.name,  # 只传递文件名，不包含路径
-                '-o', pdbqt_abs.name,   # 只传递文件名
+                '-l', str(ligand_file.absolute()),
+                '-o', str(pdbqt_path.absolute()),
                 '-A', 'hydrogens',
                 '-U', 'nphs_lps']
 
-            print(f"运行命令 (工作目录: {working_dir}): {' '.join(cmd)}")
+            print(f"运行命令: {' '.join(cmd)}")
             
-            # 在文件所在目录中运行命令
             result = subprocess.run(
                 cmd, 
                 check=True, 
                 capture_output=True, 
                 text=True, 
-                shell=True,
-                cwd=str(working_dir)  # 关键：设置工作目录
+                shell=True
             )
             
             print(f"标准输出: {result.stdout}")
