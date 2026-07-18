@@ -9,6 +9,7 @@
 | `autodock/` | 自动化分子对接技能 |
 | `amber-md/` | Amber 分子动力学模拟技能 |
 | `claude-science/` | Claude Science 扩展集合（MCP 服务器 + 科学技能） |
+| `storm-research/` | STORM 多视角研究综述技能 |
 
 ## 技能列表
 
@@ -57,6 +58,19 @@ Amber 分子动力学模拟全流程助手。Claude 直接执行体系构建和�
 
 **触发关键词：** Amber、MD 模拟、分子动力学、蛋白模拟、antechamber、tleap、pmemd、cpptraj、MMPBSA、RMSD 分析
 
+### 4. storm-research — STORM 多视角研究综述
+
+基于 Stanford STORM/Co-STORM 方法的多视角研究综述技能。使用多代理角色协作进行文献调研、证据综合与引用报告生成。
+
+**核心功能：**
+- 多视角研究（3-8 个视角，支持快速/标准/严格三种深度）
+- 多种文献来源模式（本地优先 / 混合 / 网络优先 / 交互式）
+- 证据基础综合与矛盾映射
+- 引用审计与验证
+- 生成结构化的文献综述报告
+
+**触发关键词：** 文献综述、literature review、STORM、多视角研究、证据综合、引用报告、研究调研
+
 ## 安装
 
 ```powershell
@@ -75,6 +89,9 @@ cp -r autodock $env:USERPROFILE\.claude\skills\autodock
 
 # amber-md
 cp -r amber-md $env:USERPROFILE\.claude\skills\amber-md
+
+# storm-research
+cp -r storm-research $env:USERPROFILE\.claude\skills\storm-research
 ```
 
 各技能的详细安装和配置说明请参见对应目录下的 README。
@@ -86,6 +103,7 @@ cp -r amber-md $env:USERPROFILE\.claude\skills\amber-md
 | claude-science | 按技能各异（详见子目录） | 按技能各异（详见子目录） |
 | autodock | AutoDock Vina, OpenBabel, MGLTools | numpy, pandas, matplotlib, rdkit |
 | amber-md | AmberTools 26+, Amber 26+ | numpy, pandas, matplotlib |
+| storm-research | 无 | Python 3.10+（用于引用验证脚本） |
 
 ## 许可证
 
