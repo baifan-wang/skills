@@ -128,9 +128,18 @@ C:\Users\你的用户名\.claude\skills\<skill-name>\
 
 ### Codex
 
-带 Codex 适配的技能（`storm-research`、`agent-deliberation`）可原样复制到已配置的 Codex Skills 目录：
+全部技能都可原样复制到已配置的 Codex Skills 目录：
 
 ```powershell
+# claude-science
+cp -r claude-science/skills/<skill-name> $env:USERPROFILE\.codex\skills\<skill-name>
+
+# autodock
+cp -r autodock $env:USERPROFILE\.codex\skills\autodock
+
+# amber-md
+cp -r amber-md $env:USERPROFILE\.codex\skills\amber-md
+
 # storm-research
 cp -r storm-research $env:USERPROFILE\.codex\skills\storm-research
 
@@ -156,7 +165,7 @@ C:\Users\你的用户名\.codex\skills\<skill-name>\
 $<skill-name>
 ```
 
-这两个技能各自带有 Codex 运行时适配（`references/runtime-codex.md`）；`agent-deliberation` 还包含 `agents/openai.yaml`，提供 Codex 侧的显示名与默认提示。其余技能主要面向 Claude Code。
+`storm-research` 与 `agent-deliberation` 另带有 Codex 专用的运行时适配文档（`references/runtime-codex.md`）；`agent-deliberation` 还包含 `agents/openai.yaml`，提供 Codex 侧的显示名与默认提示。
 
 各技能的详细安装和配置说明请参见对应目录下的 README。
 
