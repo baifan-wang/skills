@@ -92,6 +92,8 @@ Amber 分子动力学模拟全流程助手。Claude 直接执行体系构建和�
 git clone https://github.com/baifan-wang/skills.git
 ```
 
+### Claude Code
+
 将需要的技能目录复制到 Claude Code 的 skills 目录：
 
 ```powershell
@@ -111,6 +113,50 @@ cp -r storm-research $env:USERPROFILE\.claude\skills\storm-research
 # agent-deliberation
 cp -r agent-deliberation $env:USERPROFILE\.claude\skills\agent-deliberation
 ```
+
+个人级目录在 Windows 上通常对应：
+
+```text
+C:\Users\你的用户名\.claude\skills\<skill-name>\
+```
+
+重新打开 Claude Code 后，可以显式调用：
+
+```text
+/<skill-name>
+```
+
+### Codex
+
+带 Codex 适配的技能（`storm-research`、`agent-deliberation`）可原样复制到已配置的 Codex Skills 目录：
+
+```powershell
+# storm-research
+cp -r storm-research $env:USERPROFILE\.codex\skills\storm-research
+
+# agent-deliberation
+cp -r agent-deliberation $env:USERPROFILE\.codex\skills\agent-deliberation
+```
+
+对应目录为：
+
+```text
+$CODEX_HOME/skills/<skill-name>/
+```
+
+未单独配置 `CODEX_HOME` 时，Windows 上常见的个人目录为：
+
+```text
+C:\Users\你的用户名\.codex\skills\<skill-name>\
+```
+
+重新打开 Codex 后，可以显式调用：
+
+```text
+$<skill-name>
+```
+
+这两个技能各自带有 Codex 运行时适配（`references/runtime-codex.md`）；`agent-deliberation` 还包含 `agents/openai.yaml`，提供 Codex 侧的显示名与默认提示。其余技能主要面向 Claude Code。
 
 各技能的详细安装和配置说明请参见对应目录下的 README。
 
