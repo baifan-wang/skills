@@ -1,6 +1,6 @@
 # Claude Code Skills
 
-计算化学与分子模拟相关的 Claude Code Skills 集合。
+面向计算化学、分子模拟与研究方法论的 Claude Code Skills 集合。
 
 ## 项目结构
 
@@ -10,6 +10,7 @@
 | `amber-md/` | Amber 分子动力学模拟技能 |
 | `claude-science/` | Claude Science 扩展集合（MCP 服务器 + 科学技能） |
 | `storm-research/` | STORM 多视角研究综述技能 |
+| `agent-deliberation/` | 独立分析与交叉检查推理技能 |
 
 ## 技能列表
 
@@ -71,6 +72,20 @@ Amber 分子动力学模拟全流程助手。Claude 直接执行体系构建和�
 
 **触发关键词：** 文献综述、literature review、STORM、多视角研究、证据综合、引用报告、研究调研
 
+### 5. agent-deliberation — 独立分析与交叉检查
+
+围绕具体问题与证据形成判断的推理方法技能。适用于竞争方案、困难取舍、解释不确定，或用户明确要求多 Agent 分析的任务。不设人格角色，分析单位是证据与具体判断。
+
+**核心功能：**
+- 两种执行方式：单 Agent 分析（快速/低成本）或独立 Subagent 分析
+- 两种分工：同题独立比较（隔离答案、避免预期结论外泄）与互补分析（按边界拆分）
+- 针对性交叉检查：只复核可能改变结论的矛盾、反例或证据缺口
+- 10 个可选分析视角（证据与解释、假设与反例、约束与实施等），按需使用而非固定阵容
+- 区分事实、用户材料、推断与价值选择，不冒充真实多 Agent、不伪造来源或用户反馈
+- 支持 Codex 与 Claude Code 双运行时适配，按需保存分析记录
+
+**触发关键词：** 多 Agent 分析、独立分析、交叉检查、方案取舍、竞争方案、权衡、多视角判断、不确定解释
+
 ## 安装
 
 ```powershell
@@ -92,6 +107,9 @@ cp -r amber-md $env:USERPROFILE\.claude\skills\amber-md
 
 # storm-research
 cp -r storm-research $env:USERPROFILE\.claude\skills\storm-research
+
+# agent-deliberation
+cp -r agent-deliberation $env:USERPROFILE\.claude\skills\agent-deliberation
 ```
 
 各技能的详细安装和配置说明请参见对应目录下的 README。
@@ -104,6 +122,7 @@ cp -r storm-research $env:USERPROFILE\.claude\skills\storm-research
 | autodock | AutoDock Vina, OpenBabel, MGLTools | numpy, pandas, matplotlib, rdkit |
 | amber-md | AmberTools 26+, Amber 26+ | numpy, pandas, matplotlib |
 | storm-research | 无 | Python 3.10+（用于引用验证脚本） |
+| agent-deliberation | 无 | 无 |
 
 ## 许可证
 

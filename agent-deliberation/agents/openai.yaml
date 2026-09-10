@@ -1,0 +1,4 @@
+interface:
+  display_name: "Agent 独立分析"
+  short_description: "通过独立分析与针对性交叉检查，形成有依据的判断、取舍和行动建议"
+  default_prompt: "使用 $agent-deliberation 分析我提供的问题，检查会改变结论的关键依据与分歧，给出判断和下一步。"
