@@ -11,6 +11,7 @@
 | `claude-science/` | Claude Science 扩展集合（MCP 服务器 + 科学技能） |
 | `storm-research/` | STORM 多视角研究综述技能 |
 | `agent-deliberation/` | 独立分析与交叉检查推理技能 |
+| `hanzi-pictogram-cards/` | 幼儿汉字字画联想识字卡生成技能 |
 
 ## 技能列表
 
@@ -86,6 +87,18 @@ Amber 分子动力学模拟全流程助手。Claude 直接执行体系构建和�
 
 **触发关键词：** 多 Agent 分析、独立分析、交叉检查、方案取舍、竞争方案、权衡、多视角判断、不确定解释
 
+### 6. hanzi-pictogram-cards — 汉字字画联想识字卡
+
+为宝宝批量制作中文汉字和词语识字卡。调用 Codex 内置 `image_gen` 绘制字形联想插画，左侧汉字和带声调拼音、右侧可爱图形，支持象形启发、避免生硬把字贴到图上，最后批量输出可打印 PNG 和拼版。
+
+**核心功能：**
+- 标准化卡片排版：左侧标准汉字与拼音，右侧基于字形联想的可爱生动插画
+- 零额外 API 成本：生图由 Codex 内置 `image_gen` 执行，排版由本地 Python 脚本生成
+- 丰富预置字库：提供 24 字启蒙常用字与 156 字完整汉字库（含拼音、部首、阶段划分）
+- 批量卡片渲染与多合一拼版：生成高分辨率卡片并支持 A4 打印拼版
+
+**触发关键词：** 汉字识字卡、儿童字卡、象形识字、字画联想、拼音卡片、宝宝识字
+
 ## 安装
 
 ```powershell
@@ -112,6 +125,9 @@ cp -r storm-research $env:USERPROFILE\.claude\skills\storm-research
 
 # agent-deliberation
 cp -r agent-deliberation $env:USERPROFILE\.claude\skills\agent-deliberation
+
+# hanzi-pictogram-cards
+cp -r hanzi-pictogram-cards $env:USERPROFILE\.claude\skills\hanzi-pictogram-cards
 ```
 
 个人级目录在 Windows 上通常对应：
@@ -145,6 +161,9 @@ cp -r storm-research $env:USERPROFILE\.codex\skills\storm-research
 
 # agent-deliberation
 cp -r agent-deliberation $env:USERPROFILE\.codex\skills\agent-deliberation
+
+# hanzi-pictogram-cards
+cp -r hanzi-pictogram-cards $env:USERPROFILE\.codex\skills\hanzi-pictogram-cards
 ```
 
 对应目录为：
@@ -178,6 +197,7 @@ $<skill-name>
 | amber-md | AmberTools 26+, Amber 26+ | numpy, pandas, matplotlib |
 | storm-research | 无 | Python 3.10+（用于引用验证脚本） |
 | agent-deliberation | 无 | 无 |
+| hanzi-pictogram-cards | 无 | Pillow |
 
 ## 许可证
 
